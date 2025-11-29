@@ -1,5 +1,5 @@
 <?php 
-// Kết nối file dữ liệu
+
 include 'data/flower.php'; 
 
 
@@ -19,7 +19,7 @@ if (!isset($flowers)) {
         .flower-img {
             width: 100%;
             height: 200px;
-            object-fit: cover; /* Giúp ảnh không bị méo */
+            object-fit: cover; 
         }
     </style>
 </head>

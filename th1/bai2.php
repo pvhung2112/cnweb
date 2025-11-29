@@ -2,7 +2,7 @@
 $filename = "data/Quiz.txt";
 $questions = [];
 
-// 1. Đọc file và xử lý dữ liệu (Cập nhật để tách nhiều đáp án)
+
 if (file_exists($filename)) {
     $lines = file($filename, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
     
@@ -10,7 +10,7 @@ if (file_exists($filename)) {
     foreach ($lines as $line) {
         if (strpos($line, "ANSWER:") === 0) {
             $answerStr = trim(substr($line, strpos($line, ":") + 1));
-            // Tách chuỗi đáp án bằng dấu phẩy (ví dụ: "A, B" -> mảng ["A", "B"])
+
             $current_question['answer'] = array_map('trim', explode(',', $answerStr));
             
             $questions[] = $current_question;
@@ -27,33 +27,24 @@ if (file_exists($filename)) {
     }
 }
 
-// 2. Xử lý khi người dùng nhấn Nộp bài
 $submitted = false;
 $score = 0;
 $total = count($questions);
-$user_answers_list = []; // Lưu lại lịch sử chọn của người dùng
+$user_answers_list = []; 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $submitted = true;
     
     foreach ($questions as $index => $q) {
-        // Lấy dữ liệu người dùng gửi lên
-        // Nếu là checkbox (nhiều đáp án), $_POST sẽ trả về mảng. Nếu radio thì là chuỗi.
+    
         $user_input = $_POST['question_' . $index] ?? [];
-        
-        // Chuyển tất cả về dạng mảng để dễ so sánh
+   
         if (!is_array($user_input)) {
             $user_input = [$user_input];
         }
         
         $user_answers_list[$index] = $user_input;
-
-        // So sánh: Mảng đáp án đúng vs Mảng người dùng chọn
-        // Dùng array_diff để kiểm tra sự khác biệt
-        // (Phải chọn đủ và đúng mới được điểm)
         $correct_answers = $q['answer'];
-        
-        // Sắp xếp lại để so sánh không quan tâm thứ tự (A,B == B,A)
         sort($user_input);
         sort($correct_answers);
         
@@ -104,11 +95,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <form action="" method="POST">
         <?php foreach ($questions as $index => $q): 
-            // Kiểm tra xem câu này có mấy đáp án đúng
+          
             $isMultipleChoice = count($q['answer']) > 1;
-            // Nếu nhiều đáp án -> Checkbox, 1 đáp án -> Radio
             $inputType = $isMultipleChoice ? 'checkbox' : 'radio';
-            // Tên input: Nếu checkbox thì thêm [] để nhận mảng
             $inputName = 'question_' . $index . ($isMultipleChoice ? '[]' : '');
         ?>
             <div class="card mb-3">
@@ -120,30 +109,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="card-body">
                     <?php foreach ($q['options'] as $option): 
-                        $answerKey = substr($option, 0, 1); // Lấy A, B, C, D
+                        $answerKey = substr($option, 0, 1);
                         
                         $classInfo = '';
                         $isChecked = '';
 
                         if ($submitted) {
                             $userSelectedArr = $user_answers_list[$index] ?? [];
-                            
-                            // Kiểm tra: Người dùng có chọn đáp án này không?
                             $userSelected = in_array($answerKey, $userSelectedArr);
-                            
-                            // Kiểm tra: Đây có phải là đáp án đúng không?
+                        
                             $isCorrect = in_array($answerKey, $q['answer']);
 
                             if ($isCorrect) {
-                                $classInfo = 'correct-answer'; // Luôn tô xanh đáp án đúng
+                                $classInfo = 'correct-answer'; 
                             }
                             
                             if ($userSelected && !$isCorrect) {
-                                $classInfo = 'wrong-answer'; // Tô đỏ nếu chọn sai
+                                $classInfo = 'wrong-answer'; 
                             }
                             
                             if ($isCorrect && !$userSelected) {
-                                // Đáp án đúng nhưng người dùng không chọn -> Nhắc nhở
+                        
                                 $classInfo .= ' missing-answer'; 
                             }
 
