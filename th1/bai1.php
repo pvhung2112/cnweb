@@ -1,10 +1,15 @@
 <?php 
+include 'db.php'; 
 
-include 'data/flower.php'; 
+$flowers = []; 
 
-
-if (!isset($flowers)) {
-    die("Lỗi: Không tìm thấy biến \$flowers. Hãy kiểm tra lại file data/flowers.php xem đã có dòng '\$flowers = [...]' chưa.");
+try {
+    $sql = "SELECT * FROM flowers";
+    $stmt = $conn->prepare($sql);
+    $stmt->execute();
+    $flowers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    die("Lỗi truy vấn dữ liệu: " . $e->getMessage());
 }
 ?>
 
@@ -13,7 +18,7 @@ if (!isset($flowers)) {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Danh sách các loài hoa</title>
+    <title>Danh sách các loài hoa (Từ CSDL)</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         .flower-img {
@@ -47,39 +52,65 @@ if (!isset($flowers)) {
                 </tr>
             </thead>
             <tbody>
-                <?php foreach ($flowers as $index => $flower): ?>
-                <tr>
-                    <td><?= $index + 1 ?></td>
-                    <td><strong><?= $flower['name'] ?></strong></td>
-                    <td><?= $flower['description'] ?></td>
-                    <td>
-                        <img src="<?= $flower['image'] ?>" alt="<?= $flower['name'] ?>" width="80" height="80" style="object-fit: cover;">
-                    </td>
-                    <td>
-                        <a href="#" class="btn btn-warning btn-sm">Sửa</a>
-                        <a href="#" class="btn btn-danger btn-sm">Xóa</a>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
+                <?php if(count($flowers) > 0): ?>
+                    <?php foreach ($flowers as $index => $flower): ?>
+                    <tr>
+                        <td><?= $index + 1 ?></td>
+                        <td><strong><?= htmlspecialchars($flower['name']) ?></strong></td>
+                        <td><?= htmlspecialchars($flower['description']) ?></td>
+                        <td>
+                            <?php 
+                                $imagePath = $flower['image'];
+                                if (!str_contains($imagePath, '/')) {
+                                    $imagePath = 'public/hoadep/' . $imagePath;
+                                }
+                            ?>
+                            <img src="<?= htmlspecialchars($imagePath) ?>" alt="<?= htmlspecialchars($flower['name']) ?>" width="80" height="80" style="object-fit: cover;">
+                        </td>
+                        <td>
+                            <a href="#" class="btn btn-warning btn-sm">Sửa</a>
+                            <a href="#" class="btn btn-danger btn-sm">Xóa</a>
+                        </td>
+                    </tr>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <tr>
+                        <td colspan="5" class="text-center">Chưa có dữ liệu hoa nào.</td>
+                    </tr>
+                <?php endif; ?>
             </tbody>
         </table>
 
     <?php else: ?>
 
-        <h2 class="text-center text-success mb-4">14 loại hoa tuyệt đẹp dịp xuân hè</h2>
+        <h2 class="text-center text-success mb-4">Danh sách các loại hoa tuyệt đẹp</h2>
         
         <div class="row">
-            <?php foreach ($flowers as $flower): ?>
-            <div class="col-md-4 col-sm-6 mb-4">
-                <div class="card h-100 shadow-sm">
-                    <img src="<?= $flower['image'] ?>" class="flower-img card-img-top" alt="<?= $flower['name'] ?>">
-                    <div class="card-body">
-                        <h5 class="card-title text-success"><?= $flower['name'] ?></h5>
-                        <p class="card-text text-secondary"><?= $flower['description'] ?></p>
+            <?php if(count($flowers) > 0): ?>
+                <?php foreach ($flowers as $flower): ?>
+                <div class="col-md-4 col-sm-6 mb-4">
+                    <div class="card h-100 shadow-sm">
+                        <?php 
+                            $imagePath = $flower['image'];
+                            if (!str_contains($imagePath, '/')) {
+                                $imagePath = '/public/hoadep/' . $imagePath;
+                            }
+                            
+                        ?>
+                        <img src="<?= htmlspecialchars($imagePath) ?>" class="flower-img card-img-top" alt="<?= htmlspecialchars($flower['name']) ?>">
+                        
+                        <div class="card-body">
+                            <h5 class="card-title text-success"><?= htmlspecialchars($flower['name']) ?></h5>
+                            <p class="card-text text-secondary"><?= htmlspecialchars($flower['description']) ?></p>
+                        </div>
                     </div>
                 </div>
-            </div>
-            <?php endforeach; ?>
+                <?php endforeach; ?>
+            <?php else: ?>
+                <div class="col-12 text-center">
+                    <p>Chưa có dữ liệu hoa trong CSDL.</p>
+                </div>
+            <?php endif; ?>
         </div>
 
     <?php endif; ?>
